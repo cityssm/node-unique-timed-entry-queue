@@ -22,7 +22,7 @@ async function wait(ms: number): Promise<void> {
 
 await describe('Unique Timed Entry Queue', async () => {
   await it('should delay enqueue of unique entries', async () => {
-    const queue = new UniqueTimedEntryQueue<string>(10_000) // 10 seconds delay
+    const queue = new UniqueTimedEntryQueue<string>(5_000) // 5 seconds delay
 
     /*
      * Add two entries
@@ -58,12 +58,12 @@ await describe('Unique Timed Entry Queue', async () => {
     )
 
     /*
-     * Wait for 5 seconds and re-add entry1 to reset its delay
+     * Wait for 2 seconds and re-add entry1 to reset its delay
      */
 
-    debug('Waiting 5 seconds before re-enqueueing "entry1"')
+    debug('Waiting 2 seconds before re-enqueueing "entry1"')
 
-    await wait(5000) // Wait 5 seconds
+    await wait(2000) // Wait 2 seconds
 
     queue.enqueue('entry1') // Duplicate, should reset delay
 
@@ -92,12 +92,12 @@ await describe('Unique Timed Entry Queue', async () => {
     )
 
     /*
-     * Wait for 6 seconds to allow "entry2" to be enqueued
+     * Wait for 4 seconds to allow "entry2" to be enqueued
      */
 
-    debug('Waiting another 6 seconds to allow "entry2" to be enqueued')
+    debug('Waiting another 4 seconds to allow "entry2" to be enqueued')
 
-    await wait(6000)
+    await wait(4000)
 
     assert.strictEqual(queue.size(), 1, 'Queue should have 1 entry after delay')
     assert.strictEqual(
@@ -127,12 +127,12 @@ await describe('Unique Timed Entry Queue', async () => {
     )
 
     /*
-     * Wait for another 5 seconds to allow "entry1" to be enqueued
+     * Wait for another 2 seconds to allow "entry1" to be enqueued
      */
 
-    debug('Waiting another 5 seconds to allow "entry1" to be enqueued')
+    debug('Waiting another 2 seconds to allow "entry1" to be enqueued')
 
-    await wait(5000)
+    await wait(2000)
 
     assert.strictEqual(
       queue.size(),
@@ -322,5 +322,37 @@ await describe('Unique Timed Entry Queue', async () => {
       'entry2',
       'Dequeued entry should be "entry2"'
     )
+  })
+
+  await it('should handle different data types as entries', async () => {
+    const queue = new UniqueTimedEntryQueue<unknown>(1000) // 1 second delay
+    const entries = [42, 'stringEntry', { key: 'value' }, [1, 2, 3], true, null]
+
+    debug('Enqueuing entries of different data types')
+    queue.enqueueAll(entries)
+
+    assert.strictEqual(
+      queue.pendingSize(),
+      entries.length,
+      `There should be ${entries.length} pending entries after enqueueing`
+    )
+
+    await wait(1500) // Wait 1.5 seconds
+
+    assert.strictEqual(
+      queue.size(),
+      entries.length,
+      `Queue should have ${entries.length} entries after delay`
+    )
+    for (const expectedEntry of entries) {
+      const dequeuedEntry = queue.dequeue()
+      assert.deepStrictEqual(
+        dequeuedEntry,
+        expectedEntry,
+        `Dequeued entry should match the enqueued entry: ${JSON.stringify(
+          expectedEntry
+        )}`
+      )
+    }
   })
 })

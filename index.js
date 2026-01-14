@@ -16,6 +16,12 @@ export default class UniqueTimedEntryQueue {
      */
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     constructor(enqueueDelayMilliseconds = 60_000) {
+        if (enqueueDelayMilliseconds < 0) {
+            throw new Error('enqueueDelayMilliseconds must be non-negative');
+        }
+        else if (enqueueDelayMilliseconds === 0) {
+            debug('Warning: enqueueDelayMilliseconds is set to 0, entries will be added immediately and uniqueness will not be enforced.');
+        }
         this.enqueueDelayMilliseconds = enqueueDelayMilliseconds;
         this.pendingEntries = new Map();
         this.queue = [];

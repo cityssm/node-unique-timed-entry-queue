@@ -1,5 +1,8 @@
 # Unique, Timed-Entry Queue for Node
 
+[![DeepSource](https://app.deepsource.com/gh/cityssm/node-unique-timed-entry-queue.svg/?label=active+issues&show_trend=true&token=7XhMG59eghaYWmwSFMmUt71O)](https://app.deepsource.com/gh/cityssm/node-unique-timed-entry-queue/)
+[![codecov](https://codecov.io/gh/cityssm/node-unique-timed-entry-queue/graph/badge.svg?token=OFRV0QFN69)](https://codecov.io/gh/cityssm/node-unique-timed-entry-queue)
+
 **A queue with delayed enqueue of unique entries, perfect for queuing update notifications.**
 
 For use in scenarios where, for example, a user can trigger a notification
