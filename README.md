@@ -85,3 +85,9 @@ Clears a specific pending entry.
 
 `clearAll()`<br />
 Clears all queue entries, and all pending entries.
+
+## Related Projects
+
+[**ShiftLog**](https://github.com/cityssm/shiftlog/)<br />
+A work management system with work order recording, shift activity logging, and timesheet tracking.
+Uses a `UniqueTimedEntryQueue` to dispatch notifications when work orders have been updated.
