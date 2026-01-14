@@ -23,7 +23,7 @@ export default class UniqueTimedEntryQueue {
         this.pendingEntries = new Map();
         this.queue = [];
         exitHook(() => {
-            debug('Process exiting, clearing pending entries.');
+            debug('Process exiting, clearing pending entry timeouts.');
             this.clearPending();
         });
     }
@@ -35,6 +35,7 @@ export default class UniqueTimedEntryQueue {
     }
     /**
      * Clears all entries from the queue and all pending entries.
+     * This is the same as calling both `clearPending` and `clear`.
      */
     clearAll() {
         this.clearPending();
@@ -42,6 +43,8 @@ export default class UniqueTimedEntryQueue {
     }
     /**
      * Clears all pending entries.
+     * This does not affect entries already in the queue.
+     * This is useful for stopping all pending enqueues, and should be called before destroying the queue.
      */
     clearPending() {
         for (const timeout of this.pendingEntries.values()) {
@@ -57,7 +60,7 @@ export default class UniqueTimedEntryQueue {
     clearPendingEntry(entry) {
         const stringEntry = valueToString(entry);
         if (this.pendingEntries.has(stringEntry)) {
-            debug(`Clearing pending entry: ${stringEntry}`);
+            debug(`Clearing pending entry timeout: ${stringEntry}`);
             clearTimeout(this.pendingEntries.get(stringEntry));
             this.pendingEntries.delete(stringEntry);
             return true;

@@ -33,7 +33,7 @@ export default class UniqueTimedEntryQueue<T = number | string> {
     this.queue = []
 
     exitHook(() => {
-      debug('Process exiting, clearing pending entries.')
+      debug('Process exiting, clearing pending entry timeouts.')
       this.clearPending()
     })
   }
@@ -47,6 +47,7 @@ export default class UniqueTimedEntryQueue<T = number | string> {
 
   /**
    * Clears all entries from the queue and all pending entries.
+   * This is the same as calling both `clearPending` and `clear`.
    */
   public clearAll(): void {
     this.clearPending()
@@ -55,6 +56,8 @@ export default class UniqueTimedEntryQueue<T = number | string> {
 
   /**
    * Clears all pending entries.
+   * This does not affect entries already in the queue.
+   * This is useful for stopping all pending enqueues, and should be called before destroying the queue.
    */
   public clearPending(): void {
     for (const timeout of this.pendingEntries.values()) {
@@ -73,7 +76,7 @@ export default class UniqueTimedEntryQueue<T = number | string> {
     const stringEntry = valueToString(entry)
 
     if (this.pendingEntries.has(stringEntry)) {
-      debug(`Clearing pending entry: ${stringEntry}`)
+      debug(`Clearing pending entry timeout: ${stringEntry}`)
       clearTimeout(this.pendingEntries.get(stringEntry))
       this.pendingEntries.delete(stringEntry)
       return true

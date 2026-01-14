@@ -86,6 +86,15 @@ Clears a specific pending entry.
 `clearAll()`<br />
 Clears all queue entries, and all pending entries.
 
+## Note Regarding Shutdown
+
+This queue uses timeouts for moving pending entries to the queue.
+These timeouts are cancelled automatically when the application quits,
+however they may need to be cancelled manually if the queue is no longer needed.
+
+To ensure all timeouts are cancelled and that garbage collection can run,
+include `clearPending()` or `clearAll()` in your cleanup process.
+
 ## Related Projects
 
 [**ShiftLog**](https://github.com/cityssm/shiftlog/)<br />

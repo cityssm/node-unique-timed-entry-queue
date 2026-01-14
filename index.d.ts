@@ -16,10 +16,13 @@ export default class UniqueTimedEntryQueue<T = number | string> {
     clear(): void;
     /**
      * Clears all entries from the queue and all pending entries.
+     * This is the same as calling both `clearPending` and `clear`.
      */
     clearAll(): void;
     /**
      * Clears all pending entries.
+     * This does not affect entries already in the queue.
+     * This is useful for stopping all pending enqueues, and should be called before destroying the queue.
      */
     clearPending(): void;
     /**
