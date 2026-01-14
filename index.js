@@ -113,6 +113,13 @@ export default class UniqueTimedEntryQueue {
         return this.enqueueDelayMilliseconds;
     }
     /**
+     * Checks if there are pending entries.
+     * @returns True if there are pending entries, false otherwise.
+     */
+    hasPending() {
+        return this.pendingEntries.size > 0;
+    }
+    /**
      * Checks if an entry is pending.
      * @param entry - The entry to check.
      * @returns True if the entry is pending, false otherwise.
@@ -127,13 +134,6 @@ export default class UniqueTimedEntryQueue {
      */
     isEmpty() {
         return this.queue.length === 0;
-    }
-    /**
-     * Checks if there are no pending entries.
-     * @returns True if there are no pending entries, false otherwise.
-     */
-    isPendingEmpty() {
-        return this.pendingEntries.size === 0;
     }
     /**
      * Gets the number of pending entries.

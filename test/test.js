@@ -57,7 +57,7 @@ await describe('Unique Timed Entry Queue', async () => {
         assert.strictEqual(queue.size(), 1, 'Queue should have 1 entry after waiting for "entry1"');
         assert.strictEqual(queue.isEmpty(), false, 'Queue should not be empty after waiting for "entry1"');
         assert.strictEqual(queue.pendingSize(), 0, 'There should be no pending entries after all delays have passed');
-        assert.strictEqual(queue.isPendingEmpty(), true, 'Pending entries should be empty after all delays have passed');
+        assert.strictEqual(queue.hasPending(), false, 'Pending entries should be empty after all delays have passed');
         const dequeuedEntry1 = queue.dequeue();
         assert.strictEqual(queue.size(), 0, 'Queue should be empty after dequeueing the entry');
         assert.strictEqual(dequeuedEntry1, 'entry1', 'Dequeued entry should be "entry1"');

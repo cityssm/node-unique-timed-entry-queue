@@ -165,8 +165,8 @@ await describe('Unique Timed Entry Queue', async () => {
     )
 
     assert.strictEqual(
-      queue.isPendingEmpty(),
-      true,
+      queue.hasPending(),
+      false,
       'Pending entries should be empty after all delays have passed'
     )
 

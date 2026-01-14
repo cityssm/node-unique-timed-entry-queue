@@ -138,6 +138,14 @@ export default class UniqueTimedEntryQueue<T = number | string> {
   }
 
   /**
+   * Checks if there are pending entries.
+   * @returns True if there are pending entries, false otherwise.
+   */
+  public hasPending(): boolean {
+    return this.pendingEntries.size > 0
+  }
+
+  /**
    * Checks if an entry is pending.
    * @param entry - The entry to check.
    * @returns True if the entry is pending, false otherwise.
@@ -153,14 +161,6 @@ export default class UniqueTimedEntryQueue<T = number | string> {
    */
   public isEmpty(): boolean {
     return this.queue.length === 0
-  }
-
-  /**
-   * Checks if there are no pending entries.
-   * @returns True if there are no pending entries, false otherwise.
-   */
-  public isPendingEmpty(): boolean {
-    return this.pendingEntries.size === 0
   }
 
   /**

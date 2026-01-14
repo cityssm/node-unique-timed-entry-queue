@@ -64,10 +64,10 @@ Returns the number of entries waiting to be added to the queue.
 `isEmpty()`<br />
 Returns `true` if the queue is empty.
 
-`isPendingEmpty()`<br />
-Returns `true` if there are no pending entries.
-
 ### Pending Checks
+
+`hasPending()`<br />
+Returns `true` if there are pending entries.
 
 `hasPendingEntry(entry)`<br />
 Returns `true` if the entry is waiting to be added to the queue.
