@@ -15,17 +15,19 @@ async function wait(ms) {
 }
 await describe('Unique Timed Entry Queue', async () => {
     await it('should delay enqueue of unique entries', async () => {
-        const queue = new UniqueTimedEntryQueue(5_000); // 5 seconds delay
+        const queue = new UniqueTimedEntryQueue(5000); // 5 seconds delay
+        assert.strictEqual(queue.enqueueDelay(), 5000, 'enqueueDelay should be set correctly');
         /*
          * Add two entries
          */
         debug('Enqueuing "entry1" and "entry2"');
         queue.enqueue('entry1');
         queue.enqueue('entry2');
-        assert.strictEqual(queue.size(), 0, 'Queue should be empty immediately after enqueueing');
-        assert.strictEqual(queue.isEmpty(), true, 'Queue should be empty immediately after enqueueing');
+        assert.strictEqual(queue.size(), 0, 'Queue should be empty immediately after enqueuing');
+        assert.strictEqual(queue.isEmpty(), true, 'Queue should be empty immediately after enqueuing');
         assert.strictEqual(queue.dequeue(), undefined, 'Dequeue should return undefined immediately after enqueueing');
-        assert.strictEqual(queue.pendingSize(), 2, 'There should be 2 pending entries after enqueueing');
+        assert.strictEqual(queue.pendingSize(), 2, 'There should be 2 pending entries after enqueuing');
+        assert.strictEqual(queue.hasPendingEntry('entry1'), true, '"entry1" should be in pending entries');
         /*
          * Wait for 2 seconds and re-add entry1 to reset its delay
          */
@@ -35,7 +37,7 @@ await describe('Unique Timed Entry Queue', async () => {
         assert.strictEqual(queue.size(), 0, 'Queue should still be empty after enqueueing');
         assert.strictEqual(queue.isEmpty(), true, 'Queue should still be empty after enqueueing');
         assert.strictEqual(queue.dequeue(), undefined, 'Dequeue should still return undefined after enqueueing');
-        assert.strictEqual(queue.pendingSize(), 2, 'There should be 2 pending entries after enqueueing');
+        assert.strictEqual(queue.pendingSize(), 2, 'There should be 2 pending entries after enqueuing');
         /*
          * Wait for 4 seconds to allow "entry2" to be enqueued
          */
@@ -55,6 +57,7 @@ await describe('Unique Timed Entry Queue', async () => {
         assert.strictEqual(queue.size(), 1, 'Queue should have 1 entry after waiting for "entry1"');
         assert.strictEqual(queue.isEmpty(), false, 'Queue should not be empty after waiting for "entry1"');
         assert.strictEqual(queue.pendingSize(), 0, 'There should be no pending entries after all delays have passed');
+        assert.strictEqual(queue.isPendingEmpty(), true, 'Pending entries should be empty after all delays have passed');
         const dequeuedEntry1 = queue.dequeue();
         assert.strictEqual(queue.size(), 0, 'Queue should be empty after dequeueing the entry');
         assert.strictEqual(dequeuedEntry1, 'entry1', 'Dequeued entry should be "entry1"');
@@ -113,10 +116,11 @@ await describe('Unique Timed Entry Queue', async () => {
     });
     await it('should handle different data types as entries', async () => {
         const queue = new UniqueTimedEntryQueue(1000); // 1 second delay
+        // eslint-disable-next-line unicorn/no-null
         const entries = [42, 'stringEntry', { key: 'value' }, [1, 2, 3], true, null];
         debug('Enqueuing entries of different data types');
         queue.enqueueAll(entries);
-        assert.strictEqual(queue.pendingSize(), entries.length, `There should be ${entries.length} pending entries after enqueueing`);
+        assert.strictEqual(queue.pendingSize(), entries.length, `There should be ${entries.length} pending entries after enqueuing`);
         await wait(1500); // Wait 1.5 seconds
         assert.strictEqual(queue.size(), entries.length, `Queue should have ${entries.length} entries after delay`);
         for (const expectedEntry of entries) {

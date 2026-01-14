@@ -22,7 +22,13 @@ async function wait(ms: number): Promise<void> {
 
 await describe('Unique Timed Entry Queue', async () => {
   await it('should delay enqueue of unique entries', async () => {
-    const queue = new UniqueTimedEntryQueue<string>(5_000) // 5 seconds delay
+    const queue = new UniqueTimedEntryQueue<string>(5000) // 5 seconds delay
+
+    assert.strictEqual(
+      queue.enqueueDelay(),
+      5000,
+      'enqueueDelay should be set correctly'
+    )
 
     /*
      * Add two entries
@@ -36,13 +42,13 @@ await describe('Unique Timed Entry Queue', async () => {
     assert.strictEqual(
       queue.size(),
       0,
-      'Queue should be empty immediately after enqueueing'
+      'Queue should be empty immediately after enqueuing'
     )
 
     assert.strictEqual(
       queue.isEmpty(),
       true,
-      'Queue should be empty immediately after enqueueing'
+      'Queue should be empty immediately after enqueuing'
     )
 
     assert.strictEqual(
@@ -54,7 +60,13 @@ await describe('Unique Timed Entry Queue', async () => {
     assert.strictEqual(
       queue.pendingSize(),
       2,
-      'There should be 2 pending entries after enqueueing'
+      'There should be 2 pending entries after enqueuing'
+    )
+
+    assert.strictEqual(
+      queue.hasPendingEntry('entry1'),
+      true,
+      '"entry1" should be in pending entries'
     )
 
     /*
@@ -88,7 +100,7 @@ await describe('Unique Timed Entry Queue', async () => {
     assert.strictEqual(
       queue.pendingSize(),
       2,
-      'There should be 2 pending entries after enqueueing'
+      'There should be 2 pending entries after enqueuing'
     )
 
     /*
@@ -150,6 +162,12 @@ await describe('Unique Timed Entry Queue', async () => {
       queue.pendingSize(),
       0,
       'There should be no pending entries after all delays have passed'
+    )
+
+    assert.strictEqual(
+      queue.isPendingEmpty(),
+      true,
+      'Pending entries should be empty after all delays have passed'
     )
 
     const dequeuedEntry1 = queue.dequeue()
@@ -326,15 +344,18 @@ await describe('Unique Timed Entry Queue', async () => {
 
   await it('should handle different data types as entries', async () => {
     const queue = new UniqueTimedEntryQueue<unknown>(1000) // 1 second delay
+
+    // eslint-disable-next-line unicorn/no-null
     const entries = [42, 'stringEntry', { key: 'value' }, [1, 2, 3], true, null]
 
     debug('Enqueuing entries of different data types')
+
     queue.enqueueAll(entries)
 
     assert.strictEqual(
       queue.pendingSize(),
       entries.length,
-      `There should be ${entries.length} pending entries after enqueueing`
+      `There should be ${entries.length} pending entries after enqueuing`
     )
 
     await wait(1500) // Wait 1.5 seconds

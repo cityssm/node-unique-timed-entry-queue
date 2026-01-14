@@ -113,20 +113,20 @@ export default class UniqueTimedEntryQueue {
         return this.enqueueDelayMilliseconds;
     }
     /**
+     * Checks if an entry is pending.
+     * @param entry - The entry to check.
+     * @returns True if the entry is pending, false otherwise.
+     */
+    hasPendingEntry(entry) {
+        const stringEntry = valueToString(entry);
+        return this.pendingEntries.has(stringEntry);
+    }
+    /**
      * Checks if the queue is empty.
      * @returns True if the queue is empty, false otherwise.
      */
     isEmpty() {
         return this.queue.length === 0;
-    }
-    /**
-     * Checks if an entry is pending.
-     * @param entry - The entry to check.
-     * @returns True if the entry is pending, false otherwise.
-     */
-    isPending(entry) {
-        const stringEntry = valueToString(entry);
-        return this.pendingEntries.has(stringEntry);
     }
     /**
      * Checks if there are no pending entries.

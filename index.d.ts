@@ -51,16 +51,16 @@ export default class UniqueTimedEntryQueue<T = number | string> {
      */
     enqueueDelay(): number;
     /**
-     * Checks if the queue is empty.
-     * @returns True if the queue is empty, false otherwise.
-     */
-    isEmpty(): boolean;
-    /**
      * Checks if an entry is pending.
      * @param entry - The entry to check.
      * @returns True if the entry is pending, false otherwise.
      */
-    isPending(entry: T): boolean;
+    hasPendingEntry(entry: T): boolean;
+    /**
+     * Checks if the queue is empty.
+     * @returns True if the queue is empty, false otherwise.
+     */
+    isEmpty(): boolean;
     /**
      * Checks if there are no pending entries.
      * @returns True if there are no pending entries, false otherwise.

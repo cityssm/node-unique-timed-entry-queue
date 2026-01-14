@@ -69,7 +69,7 @@ Returns `true` if there are no pending entries.
 
 ### Pending Checks
 
-`isPending(entry)`<br />
+`hasPendingEntry(entry)`<br />
 Returns `true` if the entry is waiting to be added to the queue.
 
 ### Clear Functions
