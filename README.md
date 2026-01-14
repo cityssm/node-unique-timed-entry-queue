@@ -41,13 +41,14 @@ along with additional functions for managing the pending entries.
 ### Basic Functions
 
 `enqueue(entry, [entryDelayMilliseconds])`<br />
-Adds an entry to the queue after the specified delay.
-The queue delay can optionally be overridden for the specific entry.
+`enqueueAll(entries, [entryDelayMilliseconds])`<br />
+Adds an entry to the queue **after the specified delay**.
+The enqueue delay can optionally be overridden for the specific entry.
 If the entry is still waiting to be added to the queue,
 the delay will be reset.
 
 `dequeue()`<br />
-Dequeues and entry from the queue.
+Dequeues an entry from the queue.
 
 ### Size Checks
 

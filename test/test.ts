@@ -166,4 +166,161 @@ await describe('Unique Timed Entry Queue', async () => {
       'Dequeued entry should be "entry1"'
     )
   })
+
+  await it('should clear pending entries correctly', () => {
+    const queue = new UniqueTimedEntryQueue<string>(5000) // 5 seconds delay
+
+    debug('Enqueuing "entry1" and "entry2"')
+
+    queue.enqueueAll(['entry1', 'entry2'])
+
+    assert.strictEqual(
+      queue.pendingSize(),
+      2,
+      'There should be 2 pending entries after enqueueing'
+    )
+
+    debug('Clearing pending entry "entry1"')
+
+    const cleared = queue.clearPendingEntry('entry1')
+
+    assert.strictEqual(cleared, true, '"entry1" should be cleared successfully')
+
+    assert.strictEqual(
+      queue.pendingSize(),
+      1,
+      'There should be 1 pending entry after clearing "entry1"'
+    )
+
+    debug('Clearing all pending entries')
+
+    queue.clearPending()
+
+    assert.strictEqual(
+      queue.pendingSize(),
+      0,
+      'There should be no pending entries after clearing all'
+    )
+  })
+
+  await it('should handle immediate enqueueing with zero delay', () => {
+    const queue = new UniqueTimedEntryQueue<string>(0) // 0 seconds delay
+
+    debug('Enqueuing "entry1" and "entry2" with zero delay')
+
+    queue.enqueue('entry1')
+    queue.enqueue('entry2')
+
+    assert.strictEqual(
+      queue.size(),
+      2,
+      'Queue should have 2 entries immediately after enqueueing with zero delay'
+    )
+
+    assert.strictEqual(
+      queue.isEmpty(),
+      false,
+      'Queue should not be empty immediately after enqueueing with zero delay'
+    )
+
+    assert.strictEqual(
+      queue.pendingSize(),
+      0,
+      'There should be no pending entries after enqueueing with zero delay'
+    )
+
+    const dequeuedEntry1 = queue.dequeue()
+    const dequeuedEntry2 = queue.dequeue()
+
+    assert.strictEqual(
+      dequeuedEntry1,
+      'entry1',
+      'First dequeued entry should be "entry1"'
+    )
+
+    assert.strictEqual(
+      dequeuedEntry2,
+      'entry2',
+      'Second dequeued entry should be "entry2"'
+    )
+  })
+
+  await it('should allow custom delay per entry', async () => {
+    const queue = new UniqueTimedEntryQueue<string>(10_000) // Default 10 seconds delay
+
+    debug(
+      'Enqueuing "entry1" with 2 seconds delay and "entry2" with 4 seconds delay'
+    )
+
+    queue.enqueue('entry1', 2000) // 2 seconds delay
+    queue.enqueue('entry2', 4000) // 4 seconds delay
+
+    assert.strictEqual(
+      queue.size(),
+      0,
+      'Queue should be empty immediately after enqueueing'
+    )
+
+    assert.strictEqual(
+      queue.pendingSize(),
+      2,
+      'There should be 2 pending entries after enqueueing'
+    )
+
+    /*
+     * Wait for 3 seconds to allow "entry1" to be enqueued
+     */
+
+    debug('Waiting 3 seconds to allow "entry1" to be enqueued')
+
+    await wait(3000)
+
+    assert.strictEqual(
+      queue.size(),
+      1,
+      'Queue should have 1 entry after 3 seconds'
+    )
+
+    assert.strictEqual(
+      queue.pendingSize(),
+      1,
+      'There should be 1 pending entry after 3 seconds'
+    )
+
+    const dequeuedEntry1 = queue.dequeue()
+
+    assert.strictEqual(
+      dequeuedEntry1,
+      'entry1',
+      'Dequeued entry should be "entry1"'
+    )
+
+    /*
+     * Wait for another 2 seconds to allow "entry2" to be enqueued
+     */
+
+    debug('Waiting another 2 seconds to allow "entry2" to be enqueued')
+
+    await wait(2000)
+
+    assert.strictEqual(
+      queue.size(),
+      1,
+      'Queue should have 1 entry after total 5 seconds'
+    )
+
+    assert.strictEqual(
+      queue.pendingSize(),
+      0,
+      'There should be no pending entries after total 5 seconds'
+    )
+
+    const dequeuedEntry2 = queue.dequeue()
+
+    assert.strictEqual(
+      dequeuedEntry2,
+      'entry2',
+      'Dequeued entry should be "entry2"'
+    )
+  })
 })

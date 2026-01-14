@@ -7,16 +7,16 @@ const debug = Debug(`${DEBUG_NAMESPACE}:index`);
  * A queue that enqueues unique entries after a specified delay.
  */
 export default class UniqueTimedEntryQueue {
-    delayMilliseconds;
+    enqueueDelayMilliseconds;
     pendingEntries;
     queue;
     /**
      * Creates a new UniqueTimedEntryQueue.
-     * @param delayMilliseconds - The delay in milliseconds before an entry is added to the queue. Default is 60000 (1 minute).
+     * @param enqueueDelayMilliseconds - The delay in milliseconds before an entry is added to the queue. Default is 60000 (1 minute).
      */
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-    constructor(delayMilliseconds = 60_000) {
-        this.delayMilliseconds = delayMilliseconds;
+    constructor(enqueueDelayMilliseconds = 60_000) {
+        this.enqueueDelayMilliseconds = enqueueDelayMilliseconds;
         this.pendingEntries = new Map();
         this.queue = [];
         exitHook(() => {
@@ -74,16 +74,37 @@ export default class UniqueTimedEntryQueue {
      * @param entryDelayMilliseconds - Optional delay in milliseconds for this specific entry. If not provided, the default delay is used.
      */
     enqueue(entry, entryDelayMilliseconds) {
-        const stringEntry = valueToString(entry);
-        if (this.pendingEntries.has(stringEntry)) {
-            clearTimeout(this.pendingEntries.get(stringEntry));
+        this.clearPendingEntry(entry);
+        const delay = entryDelayMilliseconds ?? this.enqueueDelayMilliseconds;
+        if (delay <= 0) {
+            this.queue.push(entry);
+            debug(`Enqueued entry immediately (zero delay): ${valueToString(entry)}`);
+            return;
         }
+        const stringEntry = valueToString(entry);
         const timeout = setTimeout(() => {
             this.queue.push(entry);
             debug(`Enqueued entry: ${stringEntry}`);
             this.pendingEntries.delete(stringEntry);
-        }, entryDelayMilliseconds ?? this.delayMilliseconds);
+        }, delay);
         this.pendingEntries.set(stringEntry, timeout);
+    }
+    /**
+     * Enqueues a list of entries after the specified delay. If an entry is already pending, the delay is reset.
+     * @param entries - The entries to enqueue.
+     * @param entryDelayMilliseconds - Optional delay in milliseconds for these specific entries. If not provided, the default delay is used.
+     */
+    enqueueAll(entries, entryDelayMilliseconds) {
+        for (const entry of entries) {
+            this.enqueue(entry, entryDelayMilliseconds);
+        }
+    }
+    /**
+     * Gets the enqueue delay in milliseconds.
+     * @returns The enqueue delay in milliseconds.
+     */
+    enqueueDelay() {
+        return this.enqueueDelayMilliseconds;
     }
     /**
      * Checks if the queue is empty.
