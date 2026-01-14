@@ -1,0 +1,38 @@
+{
+  "name": "@cityssm/unique-timed-entry-queue",
+  "version": "0.1.0",
+  "description": "A queue with delayed enqueue of unique entries, perfect for queuing update notifications.",
+  "keywords": [
+    "queue",
+    "data-structure"
+  ],
+  "homepage": "https://github.com/cityssm/node-unique-timed-entry-queue#readme",
+  "bugs": {
+    "url": "https://github.com/cityssm/node-unique-timed-entry-queue/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cityssm/node-unique-timed-entry-queue.git"
+  },
+  "license": "MIT",
+  "author": "The Corporation of the City of Sault Ste. Marie",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./debug": "./debug.config.js"
+  },
+  "scripts": {
+    "coverage": "c8 --reporter=lcov --reporter=text --reporter=text-summary node --test",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "debug": "^4.4.3",
+    "exit-hook": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.12",
+    "@types/node": "^25.0.8",
+    "eslint-config-cityssm": "^36.1.0",
+    "prettier-config-cityssm": "^1.0.0"
+  }
+}
