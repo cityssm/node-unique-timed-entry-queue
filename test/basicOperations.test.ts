@@ -1,3 +1,6 @@
+// eslint-disable-next-line @eslint-community/eslint-comments/disable-enable-pair
+/* eslint-disable @typescript-eslint/no-magic-numbers */
+
 import assert from 'node:assert'
 import { afterEach, describe, it } from 'node:test'
 
@@ -17,7 +20,7 @@ await describe('Unique Timed Entry Queue - Basic Operations', async () => {
     queue?.clearAll()
   })
 
-  await it('initializes correctly', () => {
+  await it('initializes', () => {
     queue = new UniqueTimedEntryQueue<string>(5000)
 
     assert.strictEqual(
@@ -48,6 +51,31 @@ await describe('Unique Timed Entry Queue - Basic Operations', async () => {
       queue.pendingSize(),
       0,
       'There should be no pending entries upon initialization'
+    )
+  })
+
+  await it('initializes - zero delay', () => {
+    queue = new UniqueTimedEntryQueue<string>(0)
+
+    assert.strictEqual(
+      queue.enqueueDelay(),
+      0,
+      'enqueueDelay should be set correctly to zero'
+    )
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    queue.enqueue(undefined as unknown as string)
+
+    assert.strictEqual(
+      queue.isEmpty(),
+      false,
+      'Queue should not be empty after immediate enqueue'
+    )
+
+    assert.strictEqual(
+      queue.size(),
+      1,
+      'Queue size should be 1 after immediate enqueue'
     )
   })
 
@@ -219,5 +247,50 @@ await describe('Unique Timed Entry Queue - Basic Operations', async () => {
     const dequeuedEntry = queue.dequeue()
 
     assert.strictEqual(dequeuedEntry, undefined)
+  })
+
+  await it('does "enqueue() => dequeue()" sequence - number values', async () => {
+    const numberQueue = new UniqueTimedEntryQueue<number>(500) // 0.5 second delay
+
+    const testValue = 42
+
+    numberQueue.enqueue(testValue)
+
+    assert.strictEqual(numberQueue.size(), 0)
+    assert.strictEqual(numberQueue.pendingSize(), 1)
+
+    await wait(600)
+
+    assert.strictEqual(numberQueue.size(), 1)
+    assert.strictEqual(numberQueue.pendingSize(), 0)
+
+    const dequeuedValue = numberQueue.dequeue()
+
+    assert.strictEqual(dequeuedValue, testValue)
+  })
+
+  await it('does "enqueue() => dequeue()" sequence - object values', async () => {
+    interface TestObject {
+      id: number
+      name: string
+    }
+
+    const objectQueue = new UniqueTimedEntryQueue<TestObject>(500) // 0.5 second delay
+
+    const testValue: TestObject = { id: 1, name: 'Test Object' }
+
+    objectQueue.enqueue(testValue)
+
+    assert.strictEqual(objectQueue.size(), 0)
+    assert.strictEqual(objectQueue.pendingSize(), 1)
+
+    await wait(600)
+
+    assert.strictEqual(objectQueue.size(), 1)
+    assert.strictEqual(objectQueue.pendingSize(), 0)
+
+    const dequeuedValue = objectQueue.dequeue()
+
+    assert.deepStrictEqual(dequeuedValue, testValue)
   })
 })
