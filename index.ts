@@ -11,7 +11,13 @@ const debug = Debug(`${DEBUG_NAMESPACE}:index`)
  */
 export default class UniqueTimedEntryQueue<T = number | string> {
   private readonly enqueueDelayMilliseconds: number
-  private readonly pendingEntries: Map<string, NodeJS.Timeout>
+  private readonly pendingEntries: Map<
+    string,
+    {
+      timeout: NodeJS.Timeout
+      value: T
+    }
+  >
   private readonly queue: T[]
 
   /**
@@ -61,7 +67,7 @@ export default class UniqueTimedEntryQueue<T = number | string> {
    */
   public clearPending(): void {
     for (const timeout of this.pendingEntries.values()) {
-      clearTimeout(timeout)
+      clearTimeout(timeout.timeout)
     }
 
     this.pendingEntries.clear()
@@ -77,7 +83,7 @@ export default class UniqueTimedEntryQueue<T = number | string> {
 
     if (this.pendingEntries.has(stringEntry)) {
       debug(`Clearing pending entry timeout: ${stringEntry}`)
-      clearTimeout(this.pendingEntries.get(stringEntry))
+      clearTimeout(this.pendingEntries.get(stringEntry)?.timeout)
       this.pendingEntries.delete(stringEntry)
       return true
     }
@@ -117,7 +123,7 @@ export default class UniqueTimedEntryQueue<T = number | string> {
       this.pendingEntries.delete(stringEntry)
     }, delay)
 
-    this.pendingEntries.set(stringEntry, timeout)
+    this.pendingEntries.set(stringEntry, { timeout, value: entry })
   }
 
   /**
@@ -137,6 +143,26 @@ export default class UniqueTimedEntryQueue<T = number | string> {
    */
   public enqueueDelay(): number {
     return this.enqueueDelayMilliseconds
+  }
+
+  /**
+   * Enqueues all pending entries immediately, bypassing the delay.
+   */
+  public enqueuePending(): void {
+    for (const stringValue of this.pendingEntries.keys()) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+      const pendingEntry = this.pendingEntries.get(stringValue) as {
+        timeout: NodeJS.Timeout
+        value: T
+      }
+
+      this.pendingEntries.delete(stringValue)
+
+      clearTimeout(pendingEntry.timeout)
+      this.queue.push(pendingEntry.value)
+
+      debug(`Enqueued pending entry immediately: ${stringValue}`)
+    }
   }
 
   /**
@@ -174,10 +200,32 @@ export default class UniqueTimedEntryQueue<T = number | string> {
   }
 
   /**
+   * Converts the pending entries to an array.
+   * @returns An array containing the pending entries.
+   */
+  public pendingToArray(): T[] {
+    const pendingValues: T[] = []
+
+    for (const pendingEntry of this.pendingEntries.values()) {
+      pendingValues.push(pendingEntry.value)
+    }
+
+    return pendingValues
+  }
+
+  /**
    * Gets the size of the queue.
    * @returns The number of entries in the queue.
    */
   public size(): number {
     return this.queue.length
+  }
+
+  /**
+   * Converts the queue to an array.
+   * @returns An array containing the entries in the queue.
+   */
+  public toArray(): T[] {
+    return [...this.queue]
   }
 }

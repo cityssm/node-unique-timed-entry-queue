@@ -54,6 +54,10 @@ export default class UniqueTimedEntryQueue<T = number | string> {
      */
     enqueueDelay(): number;
     /**
+     * Enqueues all pending entries immediately, bypassing the delay.
+     */
+    enqueuePending(): void;
+    /**
      * Checks if there are pending entries.
      * @returns True if there are pending entries, false otherwise.
      */
@@ -75,8 +79,18 @@ export default class UniqueTimedEntryQueue<T = number | string> {
      */
     pendingSize(): number;
     /**
+     * Converts the pending entries to an array.
+     * @returns An array containing the pending entries.
+     */
+    pendingToArray(): T[];
+    /**
      * Gets the size of the queue.
      * @returns The number of entries in the queue.
      */
     size(): number;
+    /**
+     * Converts the queue to an array.
+     * @returns An array containing the entries in the queue.
+     */
+    toArray(): T[];
 }

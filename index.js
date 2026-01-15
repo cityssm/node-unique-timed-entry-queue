@@ -48,7 +48,7 @@ export default class UniqueTimedEntryQueue {
      */
     clearPending() {
         for (const timeout of this.pendingEntries.values()) {
-            clearTimeout(timeout);
+            clearTimeout(timeout.timeout);
         }
         this.pendingEntries.clear();
     }
@@ -61,7 +61,7 @@ export default class UniqueTimedEntryQueue {
         const stringEntry = valueToString(entry);
         if (this.pendingEntries.has(stringEntry)) {
             debug(`Clearing pending entry timeout: ${stringEntry}`);
-            clearTimeout(this.pendingEntries.get(stringEntry));
+            clearTimeout(this.pendingEntries.get(stringEntry)?.timeout);
             this.pendingEntries.delete(stringEntry);
             return true;
         }
@@ -93,7 +93,7 @@ export default class UniqueTimedEntryQueue {
             debug(`Enqueued entry: ${stringEntry}`);
             this.pendingEntries.delete(stringEntry);
         }, delay);
-        this.pendingEntries.set(stringEntry, timeout);
+        this.pendingEntries.set(stringEntry, { timeout, value: entry });
     }
     /**
      * Enqueues a list of entries after the specified delay. If an entry is already pending, the delay is reset.
@@ -111,6 +111,19 @@ export default class UniqueTimedEntryQueue {
      */
     enqueueDelay() {
         return this.enqueueDelayMilliseconds;
+    }
+    /**
+     * Enqueues all pending entries immediately, bypassing the delay.
+     */
+    enqueuePending() {
+        for (const stringValue of this.pendingEntries.keys()) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const pendingEntry = this.pendingEntries.get(stringValue);
+            this.pendingEntries.delete(stringValue);
+            clearTimeout(pendingEntry.timeout);
+            this.queue.push(pendingEntry.value);
+            debug(`Enqueued pending entry immediately: ${stringValue}`);
+        }
     }
     /**
      * Checks if there are pending entries.
@@ -143,10 +156,28 @@ export default class UniqueTimedEntryQueue {
         return this.pendingEntries.size;
     }
     /**
+     * Converts the pending entries to an array.
+     * @returns An array containing the pending entries.
+     */
+    pendingToArray() {
+        const pendingValues = [];
+        for (const pendingEntry of this.pendingEntries.values()) {
+            pendingValues.push(pendingEntry.value);
+        }
+        return pendingValues;
+    }
+    /**
      * Gets the size of the queue.
      * @returns The number of entries in the queue.
      */
     size() {
         return this.queue.length;
+    }
+    /**
+     * Converts the queue to an array.
+     * @returns An array containing the entries in the queue.
+     */
+    toArray() {
+        return [...this.queue];
     }
 }

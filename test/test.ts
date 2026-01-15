@@ -342,6 +342,42 @@ await describe('Unique Timed Entry Queue', async () => {
     )
   })
 
+  await it('should enqueue all pending entries immediately on enqueuePending', () => {
+    const queue = new UniqueTimedEntryQueue<string>(5000) // 5 seconds delay
+
+    debug('Enqueuing "entry1" and "entry2"')
+
+    queue.enqueueAll(['entry1', 'entry2'])
+
+    assert.strictEqual(
+      queue.pendingSize(),
+      2,
+      'There should be 2 pending entries after enqueueing'
+    )
+
+    assert.strictEqual(
+      queue.size(),
+      0,
+      'Queue should be empty before calling enqueuePending'
+    )
+
+    debug('Calling enqueuePending to enqueue all pending entries immediately')
+
+    queue.enqueuePending()
+
+    assert.strictEqual(
+      queue.pendingSize(),
+      0,
+      'There should be no pending entries after calling enqueuePending'
+    )
+
+    assert.strictEqual(
+      queue.size(),
+      2,
+      'Queue should have 2 entries after calling enqueuePending'
+    )
+  })
+
   await it('should handle different data types as entries', async () => {
     const queue = new UniqueTimedEntryQueue<unknown>(1000) // 1 second delay
 

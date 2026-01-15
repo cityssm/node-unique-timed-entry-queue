@@ -50,6 +50,9 @@ The enqueue delay can optionally be overridden for the specific entry.
 If the entry is still waiting to be added to the queue,
 the delay will be reset.
 
+`enqueuePending()`<br />
+Immediately add all pending entries to the queue.
+
 `dequeue()`<br />
 Dequeues an entry from the queue.
 
@@ -85,6 +88,14 @@ Clears a specific pending entry.
 
 `clearAll()`<br />
 Clears all queue entries, and all pending entries.
+
+### Export Functions
+
+`toArray()`<br />
+Exports all queue entries to an array.
+
+`pendingToArray()`<br />
+Exports all pending entries to an array.
 
 ## Note Regarding Shutdown
 
