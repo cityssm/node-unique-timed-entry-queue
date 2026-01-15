@@ -56,7 +56,7 @@ Immediately add all pending entries to the queue.
 `dequeue()`<br />
 Dequeues an entry from the queue.
 
-### Size Checks
+### Queue Checks
 
 `size()`<br />
 Returns the size of the queue.
@@ -66,8 +66,6 @@ Returns the number of entries waiting to be added to the queue.
 
 `isEmpty()`<br />
 Returns `true` if the queue is empty.
-
-### Pending Checks
 
 `hasPending()`<br />
 Returns `true` if there are pending entries.
