@@ -1,6 +1,6 @@
 {
   "name": "@cityssm/unique-timed-entry-queue",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A queue with delayed enqueue of unique entries, perfect for queuing update notifications.",
   "keywords": [
     "queue",
