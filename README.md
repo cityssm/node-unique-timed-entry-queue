@@ -87,6 +87,17 @@ Clears a specific pending entry.
 `clearAll()`<br />
 Clears all queue entries, and all pending entries.
 
+### Event Listeners
+
+Right now, only one event is available.
+
+`addEventListener('enqueue', (entry) => {})`<br />
+Adds an event listener that is called when the entry moves to the queue from pending.
+Returns an event listener id that can be used to remove the event listener.
+
+`removeEventListener('enqueue', eventListenerId)`<br />
+Removes an event listener.
+
 ### Export Functions
 
 `toArray()`<br />

@@ -2,15 +2,25 @@ import Debug from 'debug'
 import exitHook from 'exit-hook'
 
 import { DEBUG_NAMESPACE } from './debug.config.js'
-import { valueToString } from './utilities.js'
+import { generateUniqueListenerId, valueToString } from './utilities.js'
 
 const debug = Debug(`${DEBUG_NAMESPACE}:index`)
+
+export const eventTypes = ['enqueue'] as const
+
+export type EventType = (typeof eventTypes)[number]
 
 /**
  * A queue that enqueues unique entries after a specified delay.
  */
 export default class UniqueTimedEntryQueue<T = number | string> {
   private readonly enqueueDelayMilliseconds: number
+
+  private readonly eventListeners: Record<
+    EventType,
+    Record<string, (entry: T) => void>
+  >
+
   private readonly pendingEntries: Map<
     string,
     {
@@ -18,6 +28,7 @@ export default class UniqueTimedEntryQueue<T = number | string> {
       value: T
     }
   >
+
   private readonly queue: T[]
 
   /**
@@ -34,6 +45,10 @@ export default class UniqueTimedEntryQueue<T = number | string> {
       )
     }
 
+    this.eventListeners = {
+      enqueue: {}
+    }
+
     this.pendingEntries = new Map()
 
     this.queue = []
@@ -42,6 +57,21 @@ export default class UniqueTimedEntryQueue<T = number | string> {
       debug('Process exiting, clearing pending entry timeouts.')
       this.clearPending()
     })
+  }
+
+  /**
+   * Adds an event listener for the specified event type.
+   * @param eventType - The event type to listen for.
+   * @param listener - The listener function to call when the event occurs.
+   * @returns A unique ID for the listener.
+   */
+  public addEventListener(eventType: EventType, listener: (entry: T) => void): string {
+    const listenerId = generateUniqueListenerId()
+
+    // eslint-disable-next-line security/detect-object-injection
+    this.eventListeners[eventType][listenerId] = listener
+
+    return listenerId
   }
 
   /**
@@ -111,6 +141,8 @@ export default class UniqueTimedEntryQueue<T = number | string> {
 
     if (delay <= 0) {
       this.queue.push(entry)
+      this.triggerEvents('enqueue', entry)
+
       debug(`Enqueued entry immediately (zero delay): ${valueToString(entry)}`)
       return
     }
@@ -118,9 +150,12 @@ export default class UniqueTimedEntryQueue<T = number | string> {
     const stringEntry = valueToString(entry)
 
     const timeout = setTimeout(() => {
-      this.queue.push(entry)
-      debug(`Enqueued entry: ${stringEntry}`)
       this.pendingEntries.delete(stringEntry)
+
+      this.queue.push(entry)
+      this.triggerEvents('enqueue', entry)
+
+      debug(`Enqueued entry: ${stringEntry}`)
     }, delay)
 
     this.pendingEntries.set(stringEntry, { timeout, value: entry })
@@ -160,6 +195,7 @@ export default class UniqueTimedEntryQueue<T = number | string> {
 
       clearTimeout(pendingEntry.timeout)
       this.queue.push(pendingEntry.value)
+      this.triggerEvents('enqueue', pendingEntry.value)
 
       debug(`Enqueued pending entry immediately: ${stringValue}`)
     }
@@ -214,6 +250,22 @@ export default class UniqueTimedEntryQueue<T = number | string> {
   }
 
   /**
+   * Removes an event listener.
+   * @param eventType - The event type.
+   * @param listenerId - The unique ID of the listener to remove.
+   */
+  public removeEventListener(eventType: EventType, listenerId: string): void {
+    // eslint-disable-next-line security/detect-object-injection
+    const listeners = this.eventListeners[eventType]
+
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (listeners !== undefined && Object.hasOwn(listeners, listenerId)) {
+      // eslint-disable-next-line security/detect-object-injection, @typescript-eslint/no-dynamic-delete
+      delete listeners[listenerId]
+    }
+  }
+
+  /**
    * Gets the size of the queue.
    * @returns The number of entries in the queue.
    */
@@ -227,5 +279,12 @@ export default class UniqueTimedEntryQueue<T = number | string> {
    */
   public toArray(): T[] {
     return [...this.queue]
+  }
+
+  private triggerEvents(eventType: EventType, entry: T): void {
+    // eslint-disable-next-line security/detect-object-injection
+    for (const listener of Object.values(this.eventListeners[eventType])) {
+      listener(entry)
+    }
   }
 }

@@ -3,12 +3,7 @@
 import assert from 'node:assert';
 import { afterEach, describe, it } from 'node:test';
 import UniqueTimedEntryQueue from '../index.js';
-async function wait(ms) {
-    // eslint-disable-next-line promise/avoid-new
-    await new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-}
+import { wait } from './utilities.js';
 await describe('Unique Timed Entry Queue - Basic Operations', async () => {
     let queue;
     afterEach(() => {

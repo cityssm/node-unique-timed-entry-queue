@@ -1,8 +1,11 @@
+export declare const eventTypes: readonly ["enqueue"];
+export type EventType = (typeof eventTypes)[number];
 /**
  * A queue that enqueues unique entries after a specified delay.
  */
 export default class UniqueTimedEntryQueue<T = number | string> {
     private readonly enqueueDelayMilliseconds;
+    private readonly eventListeners;
     private readonly pendingEntries;
     private readonly queue;
     /**
@@ -10,6 +13,13 @@ export default class UniqueTimedEntryQueue<T = number | string> {
      * @param enqueueDelayMilliseconds - The delay in milliseconds before an entry is added to the queue. Default is 60000 (1 minute).
      */
     constructor(enqueueDelayMilliseconds?: number);
+    /**
+     * Adds an event listener for the specified event type.
+     * @param eventType - The event type to listen for.
+     * @param listener - The listener function to call when the event occurs.
+     * @returns A unique ID for the listener.
+     */
+    addEventListener(eventType: EventType, listener: (entry: T) => void): string;
     /**
      * Clears all entries from the queue.
      */
@@ -84,6 +94,12 @@ export default class UniqueTimedEntryQueue<T = number | string> {
      */
     pendingToArray(): T[];
     /**
+     * Removes an event listener.
+     * @param eventType - The event type.
+     * @param listenerId - The unique ID of the listener to remove.
+     */
+    removeEventListener(eventType: EventType, listenerId: string): void;
+    /**
      * Gets the size of the queue.
      * @returns The number of entries in the queue.
      */
@@ -93,4 +109,5 @@ export default class UniqueTimedEntryQueue<T = number | string> {
      * @returns An array containing the entries in the queue.
      */
     toArray(): T[];
+    private triggerEvents;
 }

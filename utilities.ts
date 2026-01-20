@@ -1,3 +1,6 @@
+// eslint-disable-next-line @eslint-community/eslint-comments/disable-enable-pair
+/* eslint-disable sonarjs/pseudo-random */
+
 /**
  * Converts a value to its string representation.
  * @param value - The value to convert.
@@ -17,4 +20,16 @@ export function valueToString(value: unknown): string {
   } else {
     return JSON.stringify(value)
   }
+}
+
+/**
+ * Generates a unique listener ID.
+ * @returns A unique string identifier.
+ */
+export function generateUniqueListenerId(): string {
+  return (
+    Date.now().toString(36) +
+    Math.random().toString(36).slice(2, 15) +
+    Math.random().toString(36).slice(2, 15)
+  )
 }

@@ -1,13 +1,15 @@
 import Debug from 'debug';
 import exitHook from 'exit-hook';
 import { DEBUG_NAMESPACE } from './debug.config.js';
-import { valueToString } from './utilities.js';
+import { generateUniqueListenerId, valueToString } from './utilities.js';
 const debug = Debug(`${DEBUG_NAMESPACE}:index`);
+export const eventTypes = ['enqueue'];
 /**
  * A queue that enqueues unique entries after a specified delay.
  */
 export default class UniqueTimedEntryQueue {
     enqueueDelayMilliseconds;
+    eventListeners;
     pendingEntries;
     queue;
     /**
@@ -20,12 +22,27 @@ export default class UniqueTimedEntryQueue {
         if (enqueueDelayMilliseconds === 0) {
             debug('Warning: enqueueDelayMilliseconds is set to 0, entries will be added immediately and uniqueness will not be enforced.');
         }
+        this.eventListeners = {
+            enqueue: {}
+        };
         this.pendingEntries = new Map();
         this.queue = [];
         exitHook(() => {
             debug('Process exiting, clearing pending entry timeouts.');
             this.clearPending();
         });
+    }
+    /**
+     * Adds an event listener for the specified event type.
+     * @param eventType - The event type to listen for.
+     * @param listener - The listener function to call when the event occurs.
+     * @returns A unique ID for the listener.
+     */
+    addEventListener(eventType, listener) {
+        const listenerId = generateUniqueListenerId();
+        // eslint-disable-next-line security/detect-object-injection
+        this.eventListeners[eventType][listenerId] = listener;
+        return listenerId;
     }
     /**
      * Clears all entries from the queue.
@@ -84,14 +101,16 @@ export default class UniqueTimedEntryQueue {
         const delay = entryDelayMilliseconds ?? this.enqueueDelayMilliseconds;
         if (delay <= 0) {
             this.queue.push(entry);
+            this.triggerEvents('enqueue', entry);
             debug(`Enqueued entry immediately (zero delay): ${valueToString(entry)}`);
             return;
         }
         const stringEntry = valueToString(entry);
         const timeout = setTimeout(() => {
-            this.queue.push(entry);
-            debug(`Enqueued entry: ${stringEntry}`);
             this.pendingEntries.delete(stringEntry);
+            this.queue.push(entry);
+            this.triggerEvents('enqueue', entry);
+            debug(`Enqueued entry: ${stringEntry}`);
         }, delay);
         this.pendingEntries.set(stringEntry, { timeout, value: entry });
     }
@@ -122,6 +141,7 @@ export default class UniqueTimedEntryQueue {
             this.pendingEntries.delete(stringValue);
             clearTimeout(pendingEntry.timeout);
             this.queue.push(pendingEntry.value);
+            this.triggerEvents('enqueue', pendingEntry.value);
             debug(`Enqueued pending entry immediately: ${stringValue}`);
         }
     }
@@ -167,6 +187,20 @@ export default class UniqueTimedEntryQueue {
         return pendingValues;
     }
     /**
+     * Removes an event listener.
+     * @param eventType - The event type.
+     * @param listenerId - The unique ID of the listener to remove.
+     */
+    removeEventListener(eventType, listenerId) {
+        // eslint-disable-next-line security/detect-object-injection
+        const listeners = this.eventListeners[eventType];
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (listeners !== undefined && Object.hasOwn(listeners, listenerId)) {
+            // eslint-disable-next-line security/detect-object-injection, @typescript-eslint/no-dynamic-delete
+            delete listeners[listenerId];
+        }
+    }
+    /**
      * Gets the size of the queue.
      * @returns The number of entries in the queue.
      */
@@ -179,5 +213,11 @@ export default class UniqueTimedEntryQueue {
      */
     toArray() {
         return [...this.queue];
+    }
+    triggerEvents(eventType, entry) {
+        // eslint-disable-next-line security/detect-object-injection
+        for (const listener of Object.values(this.eventListeners[eventType])) {
+            listener(entry);
+        }
     }
 }
