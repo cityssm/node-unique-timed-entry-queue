@@ -1,6 +1,6 @@
 {
   "name": "@cityssm/unique-timed-entry-queue",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A queue with delayed enqueue of unique entries, perfect for queuing update notifications.",
   "keywords": [
     "queue",
@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
-    "@types/node": "^25.0.9",
+    "@types/node": "^25.0.10",
     "eslint-config-cityssm": "^36.1.0",
     "prettier-config-cityssm": "^1.0.0"
   }
