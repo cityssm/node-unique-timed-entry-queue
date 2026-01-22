@@ -1,7 +1,12 @@
 import assert from 'node:assert'
 import { afterEach, describe, it } from 'node:test'
 
+import Debug from 'debug'
+
+import { DEBUG_ENABLE_NAMESPACES } from '../debug.config.js'
 import UniqueTimedEntryQueue from '../index.js'
+
+Debug.enable(DEBUG_ENABLE_NAMESPACES)
 
 await describe('Unique Timed Entry Queue - Export Operations', async () => {
   let queue: UniqueTimedEntryQueue<string> | undefined

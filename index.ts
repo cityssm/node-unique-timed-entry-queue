@@ -54,7 +54,9 @@ export default class UniqueTimedEntryQueue<T = number | string> {
     this.queue = []
 
     exitHook(() => {
-      debug('Process exiting, clearing pending entry timeouts.')
+      debug(
+        `Process exiting, clearing ${this.pendingEntries.size} pending entry timeouts.`
+      )
       this.clearPending()
     })
   }
@@ -65,7 +67,10 @@ export default class UniqueTimedEntryQueue<T = number | string> {
    * @param listener - The listener function to call when the event occurs.
    * @returns A unique ID for the listener.
    */
-  public addEventListener(eventType: EventType, listener: (entry: T) => void): string {
+  public addEventListener(
+    eventType: EventType,
+    listener: (entry: T) => void
+  ): string {
     const listenerId = generateUniqueListenerId()
 
     // eslint-disable-next-line security/detect-object-injection
@@ -76,31 +81,42 @@ export default class UniqueTimedEntryQueue<T = number | string> {
 
   /**
    * Clears all entries from the queue.
+   * @returns The number of entries that were cleared.
    */
-  public clear(): void {
+  public clear(): number {
+    const clearedCount = this.queue.length
     this.queue.length = 0
+    return clearedCount
   }
 
   /**
    * Clears all entries from the queue and all pending entries.
    * This is the same as calling both `clearPending` and `clear`.
+   * @returns The total number of entries that were cleared.
    */
-  public clearAll(): void {
-    this.clearPending()
-    this.clear()
+  public clearAll(): number {
+    const clearedPending = this.clearPending()
+    const clearedQueue = this.clear()
+
+    return clearedPending + clearedQueue
   }
 
   /**
    * Clears all pending entries.
    * This does not affect entries already in the queue.
    * This is useful for stopping all pending enqueues, and should be called before destroying the queue.
+   * @returns The number of pending entries that were cleared.
    */
-  public clearPending(): void {
+  public clearPending(): number {
     for (const timeout of this.pendingEntries.values()) {
       clearTimeout(timeout.timeout)
     }
 
+    const pendingCount = this.pendingEntries.size
+
     this.pendingEntries.clear()
+
+    return pendingCount
   }
 
   /**
@@ -130,7 +146,9 @@ export default class UniqueTimedEntryQueue<T = number | string> {
   }
 
   /**
-   * Enqueues an entry after the specified delay. If the entry is already pending, the delay is reset.
+   * Enqueues an entry **after the specified delay**.
+   * If the entry is already pending, the delay is reset.
+   * If the entry is already in the queue, it will not be added again.
    * @param entry - The entry to enqueue.
    * @param entryDelayMilliseconds - Optional delay in milliseconds for this specific entry. If not provided, the default delay is used.
    */
@@ -140,6 +158,11 @@ export default class UniqueTimedEntryQueue<T = number | string> {
     const delay = entryDelayMilliseconds ?? this.enqueueDelayMilliseconds
 
     if (delay <= 0) {
+      if (this.queue.includes(entry)) {
+        debug(`Entry already in queue, not enqueuing: ${valueToString(entry)}`)
+        return
+      }
+
       this.queue.push(entry)
       this.triggerEvents('enqueue', entry)
 
@@ -152,6 +175,11 @@ export default class UniqueTimedEntryQueue<T = number | string> {
     const timeout = setTimeout(() => {
       this.pendingEntries.delete(stringEntry)
 
+      if (this.queue.includes(entry)) {
+        debug(`Entry already in queue, not enqueuing: ${stringEntry}`)
+        return
+      }
+
       this.queue.push(entry)
       this.triggerEvents('enqueue', entry)
 
@@ -162,7 +190,9 @@ export default class UniqueTimedEntryQueue<T = number | string> {
   }
 
   /**
-   * Enqueues a list of entries after the specified delay. If an entry is already pending, the delay is reset.
+   * Enqueues a list of entries after the specified delay.
+   * If an entry is already pending, the delay is reset.
+   * If an entry is already in the queue, it will not be added again.
    * @param entries - The entries to enqueue.
    * @param entryDelayMilliseconds - Optional delay in milliseconds for these specific entries. If not provided, the default delay is used.
    */
@@ -181,7 +211,7 @@ export default class UniqueTimedEntryQueue<T = number | string> {
   }
 
   /**
-   * Enqueues all pending entries immediately, bypassing the delay.
+   * Enqueues all pending entries, bypassing the delay.
    */
   public enqueuePending(): void {
     for (const stringValue of this.pendingEntries.keys()) {
@@ -194,6 +224,14 @@ export default class UniqueTimedEntryQueue<T = number | string> {
       this.pendingEntries.delete(stringValue)
 
       clearTimeout(pendingEntry.timeout)
+
+      if (this.queue.includes(pendingEntry.value)) {
+        debug(
+          `Entry already in queue, not enqueuing pending entry: ${stringValue}`
+        )
+        continue
+      }
+
       this.queue.push(pendingEntry.value)
       this.triggerEvents('enqueue', pendingEntry.value)
 
@@ -203,7 +241,7 @@ export default class UniqueTimedEntryQueue<T = number | string> {
 
   /**
    * Checks if there are pending entries.
-   * @returns True if there are pending entries, false otherwise.
+   * @returns `true` if there are pending entries, `false` otherwise.
    */
   public hasPending(): boolean {
     return this.pendingEntries.size > 0
@@ -212,7 +250,7 @@ export default class UniqueTimedEntryQueue<T = number | string> {
   /**
    * Checks if an entry is pending.
    * @param entry - The entry to check.
-   * @returns True if the entry is pending, false otherwise.
+   * @returns `true` if the entry is pending, `false` otherwise.
    */
   public hasPendingEntry(entry: T): boolean {
     const stringEntry = valueToString(entry)
@@ -221,7 +259,7 @@ export default class UniqueTimedEntryQueue<T = number | string> {
 
   /**
    * Checks if the queue is empty.
-   * @returns True if the queue is empty, false otherwise.
+   * @returns `true` if the queue is empty, `false` otherwise.
    */
   public isEmpty(): boolean {
     return this.queue.length === 0

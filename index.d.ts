@@ -22,19 +22,22 @@ export default class UniqueTimedEntryQueue<T = number | string> {
     addEventListener(eventType: EventType, listener: (entry: T) => void): string;
     /**
      * Clears all entries from the queue.
+     * @returns The number of entries that were cleared.
      */
-    clear(): void;
+    clear(): number;
     /**
      * Clears all entries from the queue and all pending entries.
      * This is the same as calling both `clearPending` and `clear`.
+     * @returns The total number of entries that were cleared.
      */
-    clearAll(): void;
+    clearAll(): number;
     /**
      * Clears all pending entries.
      * This does not affect entries already in the queue.
      * This is useful for stopping all pending enqueues, and should be called before destroying the queue.
+     * @returns The number of pending entries that were cleared.
      */
-    clearPending(): void;
+    clearPending(): number;
     /**
      * Clears a specific pending entry.
      * @param entry - The entry to clear from pending.
@@ -47,13 +50,17 @@ export default class UniqueTimedEntryQueue<T = number | string> {
      */
     dequeue(): T | undefined;
     /**
-     * Enqueues an entry after the specified delay. If the entry is already pending, the delay is reset.
+     * Enqueues an entry **after the specified delay**.
+     * If the entry is already pending, the delay is reset.
+     * If the entry is already in the queue, it will not be added again.
      * @param entry - The entry to enqueue.
      * @param entryDelayMilliseconds - Optional delay in milliseconds for this specific entry. If not provided, the default delay is used.
      */
     enqueue(entry: T, entryDelayMilliseconds?: number): void;
     /**
-     * Enqueues a list of entries after the specified delay. If an entry is already pending, the delay is reset.
+     * Enqueues a list of entries after the specified delay.
+     * If an entry is already pending, the delay is reset.
+     * If an entry is already in the queue, it will not be added again.
      * @param entries - The entries to enqueue.
      * @param entryDelayMilliseconds - Optional delay in milliseconds for these specific entries. If not provided, the default delay is used.
      */
@@ -64,23 +71,23 @@ export default class UniqueTimedEntryQueue<T = number | string> {
      */
     enqueueDelay(): number;
     /**
-     * Enqueues all pending entries immediately, bypassing the delay.
+     * Enqueues all pending entries, bypassing the delay.
      */
     enqueuePending(): void;
     /**
      * Checks if there are pending entries.
-     * @returns True if there are pending entries, false otherwise.
+     * @returns `true` if there are pending entries, `false` otherwise.
      */
     hasPending(): boolean;
     /**
      * Checks if an entry is pending.
      * @param entry - The entry to check.
-     * @returns True if the entry is pending, false otherwise.
+     * @returns `true` if the entry is pending, `false` otherwise.
      */
     hasPendingEntry(entry: T): boolean;
     /**
      * Checks if the queue is empty.
-     * @returns True if the queue is empty, false otherwise.
+     * @returns `true` if the queue is empty, `false` otherwise.
      */
     isEmpty(): boolean;
     /**

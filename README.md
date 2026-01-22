@@ -9,6 +9,9 @@ For use in scenarios where, for example, a user can trigger a notification
 after updating a record, but may perform several updates close together,
 and in the end only one notification should be sent.
 
+💡 **For best results, use numbers or strings for queue entries**
+as uniqueness is easier to determine.
+
 ## Installation
 
 ```bash
@@ -47,8 +50,8 @@ along with additional functions for managing the pending entries.
 `enqueueAll(entries, [entryDelayMilliseconds])`<br />
 Adds an entry (or entries) to the queue **after the specified delay**.
 The enqueue delay can optionally be overridden for the specific entry.
-If the entry is still waiting to be added to the queue,
-the delay will be reset.
+If the entry is still waiting to be added to the queue, the delay will be reset.
+If the entry exists in the queue, it is discarded.
 
 `enqueuePending()`<br />
 Immediately add all pending entries to the queue.
@@ -77,15 +80,19 @@ Returns `true` if the entry is waiting to be added to the queue.
 
 `clear()`<br />
 Clears all queue entries.
+Returns the number of cleared entries.
 
 `clearPending()`<br />
 Clears all pending queue entries.
+Returns the number of cleared pending entries.
 
 `clearPendingEntry(entry)`<br />
 Clears a specific pending entry.
+Returns `true` if the pending entry was found and cleared.
 
 `clearAll()`<br />
 Clears all queue entries, and all pending entries.
+Returns the total number of cleared entries.
 
 ### Event Listeners
 
@@ -118,5 +125,6 @@ include `clearPending()` or `clearAll()` in your cleanup process.
 ## Related Projects
 
 [**ShiftLog**](https://github.com/cityssm/shiftlog/)<br />
-A work management system with work order recording, shift activity logging, and timesheet tracking.
-Uses a `UniqueTimedEntryQueue` to dispatch notifications when work orders have been updated.
+A work management system with work order recording, shift activity logging,
+and timesheet tracking. Uses a `UniqueTimedEntryQueue` to dispatch notifications
+when work orders have been updated.
