@@ -62,10 +62,10 @@ Dequeues an entry from the queue.
 ### Queue Checks
 
 `size()`<br />
-Returns the size of the queue.
+Returns the size of the queue, not including any pending entries.
 
 `pendingSize()`<br />
-Returns the number of entries waiting to be added to the queue.
+Returns the number of pending entries waiting to be added to the queue.
 
 `isEmpty()`<br />
 Returns `true` if the queue is empty.
